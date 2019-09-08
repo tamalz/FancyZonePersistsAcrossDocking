@@ -223,6 +223,12 @@ IFACEMETHODIMP_(bool) FancyZones::OnKeyDown(PKBDLLHOOKSTRUCT info) noexcept
 // IFancyZonesCallback
 void FancyZones::ToggleEditor() noexcept
 {
+	if (!m_settings->GetSettings().use_standalone_editor)
+	{
+		ToggleZoneViewers();
+		return;
+	}
+
     {
         std::shared_lock readLock(m_lock);
         if (m_terminateEditorEvent)
@@ -332,14 +338,7 @@ LRESULT FancyZones::WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
     {
         if (wparam == 1)
         {
-            if (m_settings->GetSettings().use_standalone_editor)
-            {
-                ToggleEditor();
-            }
-            else
-            {
-                ToggleZoneViewers();
-            }
+            ToggleEditor();
         }
     }
     break;
