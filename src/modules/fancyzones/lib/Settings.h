@@ -12,7 +12,6 @@ struct Settings
     bool zoneSetChange_moveWindows = false;
     bool overrideSnapHotkeys = false;
     bool appLastZone_moveWindows = false;
-    bool use_standalone_editor = true;
     std::wstring zoneHightlightColor = L"#0078D7";
 };
 

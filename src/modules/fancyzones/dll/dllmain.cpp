@@ -74,9 +74,7 @@ STDAPI PersistZoneSet(
                 id,
                 layoutId,
                 MonitorFromPoint({}, MONITOR_DEFAULTTOPRIMARY),
-                resolutionKey,
-                ZoneSetLayout::Custom,
-                0, 0, 0));
+                resolutionKey));
 
         for (int i = 0; i < zoneCount; i++)
         {
@@ -85,7 +83,7 @@ STDAPI PersistZoneSet(
             const int top = zones[baseIndex+1];
             const int right = zones[baseIndex+2];
             const int bottom = zones[baseIndex+3];
-            zoneSet->AddZone(MakeZone({ left, top, right, bottom }), false);
+            zoneSet->AddZone(MakeZone({ left, top, right, bottom }));
         }
         zoneSet->Save();
 
