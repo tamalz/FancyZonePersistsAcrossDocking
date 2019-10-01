@@ -50,9 +50,6 @@ private:
     struct require_read_lock
     {
         template<typename T>
-        require_read_lock(const std::shared_lock<T>& lock) { lock; }
-
-        template<typename T>
         require_read_lock(const std::unique_lock<T>& lock) { lock; }
     };
 
@@ -257,7 +254,6 @@ void FancyZones::ToggleEditor() noexcept
         monitor = MonitorFromWindow(foregroundWindow, MONITOR_DEFAULTTOPRIMARY);
         DPIAware::GetScreenDPIForWindow(foregroundWindow, dpi_x, dpi_y);
     }
-
 
     if (!monitor)
     {

@@ -20,11 +20,9 @@ public:
     IFACEMETHODIMP_(void) MoveWindowIntoZoneByIndex(HWND window, int index) noexcept;
     IFACEMETHODIMP_(void) MoveWindowIntoZoneByDirection(HWND window, DWORD vkCode) noexcept;
     IFACEMETHODIMP_(void) CycleActiveZoneSet(DWORD vkCode) noexcept;
-    IFACEMETHODIMP_(void) SaveWindowProcessToZoneIndex(HWND window) noexcept;
     IFACEMETHODIMP_(std::wstring) DeviceId() noexcept { return { m_deviceId.get() }; }
     IFACEMETHODIMP_(std::wstring) UniqueId() noexcept { return { m_uniqueId }; }
     IFACEMETHODIMP_(std::wstring) WorkAreaKey() noexcept { return { m_workArea }; }
-    IFACEMETHODIMP_(void) SaveWindowProcessToZoneIndex(HWND window) noexcept;
     IFACEMETHODIMP_(IZoneSet*) ActiveZoneSet() noexcept { return m_activeZoneSet.get(); }
 
 protected:
@@ -60,6 +58,7 @@ private:
     bool IsOccluded(POINT pt, size_t index) noexcept;
     void CycleActiveZoneSetInternal(DWORD wparam, Trace::ZoneWindow::InputMode mode) noexcept;
     void FlashZones() noexcept;
+    void SaveWindowProcessToZoneIndex(HWND window) noexcept;
     UINT GetDpiForMonitor() noexcept;
 
     winrt::com_ptr<IZoneWindowHost> m_host;
@@ -229,20 +228,6 @@ IFACEMETHODIMP_(void) ZoneWindow::CycleActiveZoneSet(DWORD wparam) noexcept
     else
     {
         FlashZones();
-    }
-}
-
-IFACEMETHODIMP_(void) ZoneWindow::SaveWindowProcessToZoneIndex(HWND window) noexcept
-{
-    wchar_t processPath[MAX_PATH] = { 0 };
-    DWORD processPathSize = GetProcessPath(window, processPath, static_cast<DWORD>(MAX_PATH));
-    if (processPathSize > 0)
-    {
-        DWORD zoneIndex = static_cast<DWORD>(m_activeZoneSet->GetZoneIndexFromWindow(window));
-        if (zoneIndex != -1)
-        {
-            RegistryHelpers::SaveAppLastZone(window, processPath, zoneIndex);
-        }
     }
 }
 
@@ -719,13 +704,7 @@ void ZoneWindow::FlashZones() noexcept
         }).detach();
 }
 
-int ZoneWindow::GetSwitchButtonIndexFromPoint(POINT ptClient) noexcept
-{
-    auto const switchButtonIndex = ((ptClient.x - m_switchButtonContainerRect.left) / (m_switchButtonWidth + m_switchButtonPadding)) + 1;
-    return ((switchButtonIndex > 0) && (switchButtonIndex < 10)) ? switchButtonIndex : -1;
-}
-
-IFACEMETHODIMP_(void) ZoneWindow::SaveWindowProcessToZoneIndex(HWND window) noexcept
+void ZoneWindow::SaveWindowProcessToZoneIndex(HWND window) noexcept
 {
     auto processPath = GetProcessPath(window);
     if (!processPath.empty())

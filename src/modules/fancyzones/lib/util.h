@@ -24,6 +24,8 @@ struct Rect
     int bottom() const { return m_rect.bottom; }
     int aspectRatio() const { return MulDiv(m_rect.bottom - m_rect.top, 100, m_rect.right - m_rect.left); }
 
+	RECT* operator&() { return &m_rect; }
+
 private:
     RECT m_rect{};
 };

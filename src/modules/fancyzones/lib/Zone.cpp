@@ -1,6 +1,5 @@
 #include "pch.h"
 
-
 struct Zone : winrt::implements<Zone, IZone>
 {
 public:

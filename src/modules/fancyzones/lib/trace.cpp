@@ -49,16 +49,6 @@ void Trace::FancyZones::EnableFancyZones(bool enabled) noexcept
         TraceLoggingBoolean(enabled, "Enabled"));
 }
 
-void Trace::FancyZones::ToggleZoneViewers(bool visible) noexcept
-{
-    TraceLoggingWrite(
-        g_hProvider,
-        "FancyZones::Event::ToggleZoneViewers",
-        ProjectTelemetryPrivacyDataTag(ProjectTelemetryTag_ProductAndServicePerformance),
-        TraceLoggingKeyword(PROJECT_KEYWORD_MEASURE),
-        TraceLoggingBoolean(visible, "Visible"));
-}
-
 void Trace::FancyZones::OnKeyDown(DWORD vkCode, bool win, bool control, bool inMoveSize) noexcept
 {
     TraceLoggingWrite(

@@ -27,9 +27,6 @@ public:
 private:
     winrt::com_ptr<IZone> ZoneFromWindow(HWND window) noexcept;
 
-    // XXXX: huh?
-    //void StampZone(HWND window, _In_opt_ winrt::com_ptr<IZone> zone) noexcept;
-
     std::vector<winrt::com_ptr<IZone>> m_zones;
     ZoneSetConfig m_config;
 };
@@ -46,37 +43,34 @@ IFACEMETHODIMP ZoneSet::AddZone(winrt::com_ptr<IZone> zone) noexcept
 
 IFACEMETHODIMP_(winrt::com_ptr<IZone>) ZoneSet::ZoneFromPoint(POINT pt) noexcept
 {
-    winrt::com_ptr<IZone> smallestKnownZone = nullptr;
-    // To reduce redundant calculations, we will store the last known zones area.
+	winrt::com_ptr<IZone> smallestKnownZone;
     int smallestKnownZoneArea = INT32_MAX;
     for (auto iter = m_zones.begin(); iter != m_zones.end(); iter++)
     {
         if (winrt::com_ptr<IZone> zone = iter->try_as<IZone>())
         {
-            RECT* newZoneRect = &zone->GetZoneRect();
-            if (PtInRect(newZoneRect, pt))
+            Rect newZoneRect(zone->GetZoneRect());
+            if (PtInRect(&newZoneRect, pt))
             {
                 if (smallestKnownZone == nullptr)
                 {
                     smallestKnownZone = zone;
 
-                    RECT* r = &smallestKnownZone->GetZoneRect();
-                    smallestKnownZoneArea = (r->right-r->left)*(r->bottom-r->top);
+                    Rect rect(smallestKnownZone->GetZoneRect());
+					smallestKnownZoneArea = rect.width() * rect.height();
                 }
                 else
                 {
-                    int newZoneArea = (newZoneRect->right-newZoneRect->left)*(newZoneRect->bottom-newZoneRect->top);
-
-                    if (newZoneArea<smallestKnownZoneArea)
+					const int newZoneArea = newZoneRect.width() * newZoneRect.height();
+                    if (newZoneArea < smallestKnownZoneArea)
                     {
                         smallestKnownZone = zone;
-                        newZoneArea = smallestKnownZoneArea;
+                        smallestKnownZoneArea = newZoneArea;
                     }
                 }
             }
         }
     }
-
     return smallestKnownZone;
 }
 
