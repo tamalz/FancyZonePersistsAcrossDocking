@@ -126,24 +126,33 @@ bool install_new_version_stage_2(std::wstring_view installer_path, std::wstring_
     return true;
 }
 
-bool dotnet_is_installed()
+bool runtime_is_installed(const char* runtime)
 {
     auto runtimes = exec_and_read_output(LR"(dotnet --list-runtimes)");
     if (!runtimes)
     {
         return false;
     }
-    const char DESKTOP_DOTNET_RUNTIME_STRING[] = "Microsoft.WindowsDesktop.App 3.1.";
-    return runtimes->find(DESKTOP_DOTNET_RUNTIME_STRING) != std::string::npos;
+    return runtimes->find(runtime) != std::string::npos;
+}
+bool dotnet_desktop_is_installed()
+{
+    return runtime_is_installed("Microsoft.WindowsDesktop.App 3.0.");
 }
 
-bool install_dotnet()
+bool dotnet_core_is_installed()
 {
-    const wchar_t DOTNET_DESKTOP_DOWNLOAD_LINK[] = L"https://download.visualstudio.microsoft.com/download/pr/a1510e74-b31a-4434-b8a0-8074ff31fb3f/b7de8ecba4a14d8312551cfdc745dea1/windowsdesktop-runtime-3.1.0-win-x64.exe";
-    const wchar_t DOTNET_DESKTOP_FILENAME[] = L"windowsdesktop-runtime-3.1.0-win-x64.exe";
+    return runtime_is_installed("Microsoft.NETCore.App 3.0.");
+}
 
-    auto dotnet_download_path = fs::temp_directory_path() / DOTNET_DESKTOP_FILENAME;
-    winrt::Windows::Foundation::Uri download_link{ DOTNET_DESKTOP_DOWNLOAD_LINK };
+bool install_runtime(
+    const wchar_t* filename,
+    const wchar_t* download_link_url,
+    const wchar_t* download_failure,
+    const wchar_t* download_failure_title)
+{
+    auto dotnet_download_path = fs::temp_directory_path() / filename;
+    winrt::Windows::Foundation::Uri download_link{ download_link_url };
 
     const size_t max_attempts = 3;
     bool download_success = false;
@@ -163,8 +172,8 @@ bool install_dotnet()
     if (!download_success)
     {
         MessageBoxW(nullptr,
-                    GET_RESOURCE_STRING(IDS_DOTNET_CORE_DOWNLOAD_FAILURE).c_str(),
-                    GET_RESOURCE_STRING(IDS_DOTNET_CORE_DOWNLOAD_FAILURE_TITLE).c_str(),
+                    download_failure,
+                    download_failure_title,
                     MB_OK | MB_ICONERROR);
         return false;
     }
@@ -174,6 +183,30 @@ bool install_dotnet()
     sei.nShow = SW_SHOWNORMAL;
     sei.lpParameters = L"/install /passive";
     return ShellExecuteExW(&sei) == TRUE;
+}
+
+bool install_dotnet_desktop()
+{
+    const wchar_t DOTNET_DESKTOP_DOWNLOAD_LINK[] = L"https://download.visualstudio.microsoft.com/download/pr/c525a2bb-6e98-4e6e-849e-45241d0db71c/d21612f02b9cae52fa50eb54de905986/windowsdesktop-runtime-3.0.3-win-x64.exe";
+    const wchar_t DOTNET_DESKTOP_FILENAME[] = L"windowsdesktop-runtime-3.0.3-win-x64.exe";
+
+    return install_runtime(
+            DOTNET_DESKTOP_DOWNLOAD_LINK,
+            DOTNET_DESKTOP_FILENAME,
+            GET_RESOURCE_STRING(IDS_DOTNET_DESKTOP_DOWNLOAD_FAILURE).c_str(),
+            GET_RESOURCE_STRING(IDS_DOTNET_DESKTOP_DOWNLOAD_FAILURE_TITLE).c_str());
+}
+
+bool install_dotnet_core()
+{
+    const wchar_t DOTNET_CORE_DOWNLOAD_LINK[] = L"https://download.visualstudio.microsoft.com/download/pr/fa69f1ae-255d-453c-b4ff-28d832525037/51694be04e411600c2e3361f6c81400d/dotnet-runtime-3.0.3-win-x64.exe";
+    const wchar_t DOTNET_CORE_FILENAME[] = L"dotnet-runtime-3.0.3-win-x64.exe";
+
+    return install_runtime(
+            DOTNET_CORE_DOWNLOAD_LINK,
+            DOTNET_CORE_FILENAME,
+            GET_RESOURCE_STRING(IDS_DOTNET_CORE_DOWNLOAD_FAILURE).c_str(),
+            GET_RESOURCE_STRING(IDS_DOTNET_CORE_DOWNLOAD_FAILURE_TITLE).c_str());
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -186,13 +219,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     }
     std::wstring_view action{ args[1] };
 
-    if (action == L"-install_dotnet")
+    if (action == L"-install_dotnet_desktop")
     {
-        if (dotnet_is_installed())
-        {
-            return 0;
-        }
-        return !install_dotnet();
+        // if (dotnet_desktop_is_installed())
+        // {
+        //     return 0;
+        // }
+        return !install_dotnet_desktop();
+    }
+    else if (action == L"-install_dotnet_core")
+    {
+        // if (dotnet_core_is_installed())
+        // {
+        //     return 0;
+        // }
+        return !install_dotnet_core();
     }
     else if (action == L"-uninstall_msi")
     {

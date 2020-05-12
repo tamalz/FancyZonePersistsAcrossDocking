@@ -69,7 +69,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\WiX.3.11.2\build\wix.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WiX.3.11.2\build\wix.props'))" />
   </Target>
-
+  
   <PropertyGroup>
     <PreBuildEvent>setlocal enableDelayedExpansion
 
@@ -90,7 +90,7 @@ echo   ^&lt;PropertyGroup^&gt; &gt;&gt; !settingsPublishProfile!
 echo     ^&lt;PublishProtocol^&gt;FileSystem^&lt;/PublishProtocol^&gt; &gt;&gt; !settingsPublishProfile!
 echo     ^&lt;Configuration^&gt;$(ConfigurationName)^&lt;/Configuration^&gt; &gt;&gt; !settingsPublishProfile!
 echo     ^&lt;Platform^&gt;$(PlatformName)^&lt;/Platform^&gt; &gt;&gt; !settingsPublishProfile!
-echo     ^&lt;TargetFramework^&gt;netcoreapp3.1^&lt;/TargetFramework^&gt; &gt;&gt; !settingsPublishProfile!
+echo     ^&lt;TargetFramework^&gt;netcoreapp3.0^&lt;/TargetFramework^&gt; &gt;&gt; !settingsPublishProfile!
 echo     ^&lt;PublishDir^&gt;..\..\..\$(PlatformName)\$(ConfigurationName)\SettingsUIRunner^&lt;/PublishDir^&gt; &gt;&gt; !settingsPublishProfile!
 echo     ^&lt;RuntimeIdentifier^&gt;win-x64^&lt;/RuntimeIdentifier^&gt; &gt;&gt; !settingsPublishProfile!
 echo     ^&lt;SelfContained^&gt;false^&lt;/SelfContained^&gt; &gt;&gt; !settingsPublishProfile!
@@ -124,7 +124,7 @@ echo   ^&lt;PropertyGroup^&gt; &gt;&gt; !launcherPublishProfile!
 echo     ^&lt;PublishProtocol^&gt;FileSystem^&lt;/PublishProtocol^&gt; &gt;&gt; !launcherPublishProfile!
 echo     ^&lt;Configuration^&gt;$(ConfigurationName)^&lt;/Configuration^&gt; &gt;&gt; !launcherPublishProfile!
 echo     ^&lt;Platform^&gt;$(PlatformName)^&lt;/Platform^&gt; &gt;&gt; !launcherPublishProfile!
-echo     ^&lt;TargetFramework^&gt;netcoreapp3.1^&lt;/TargetFramework^&gt; &gt;&gt; !launcherPublishProfile!
+echo     ^&lt;TargetFramework^&gt;netcoreapp3.0^&lt;/TargetFramework^&gt; &gt;&gt; !launcherPublishProfile!
 echo     ^&lt;PublishDir^&gt;..\..\..\..\$(PlatformName)\$(ConfigurationName)\modules\launcher^&lt;/PublishDir^&gt; &gt;&gt; !launcherPublishProfile!
 echo     ^&lt;RuntimeIdentifier^&gt;win-x64^&lt;/RuntimeIdentifier^&gt; &gt;&gt; !launcherPublishProfile!
 echo     ^&lt;SelfContained^&gt;false^&lt;/SelfContained^&gt; &gt;&gt; !launcherPublishProfile!
