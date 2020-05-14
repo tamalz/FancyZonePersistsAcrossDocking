@@ -63,22 +63,26 @@
                     Grid.Column="1"
                     Orientation="Vertical"
                     HorizontalAlignment="Left">
+
+                <StackPanel.Resources>
+                    <Style TargetType="Button" x:Key="ModuleOverviewTipStyle">
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                </StackPanel.Resources>
+                
                 <TextBlock x:Name="AboutTextBlock" Text="About this feature" TextWrapping="Wrap" Margin="24,0,0,12" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <HyperlinkButton x:Name="ModuleOverviewLink" Content="Module overview" Margin="24,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" PointerEntered="ToggleModuleOverviewTip" PointerExited="ToggleModuleOverviewTip">
+                <HyperlinkButton x:Name="ModuleOverviewLink" Content="Module overview" Margin="24,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" PointerEntered="ToggleModuleOverviewTip" PointerExited="ToggleModuleOverviewTip">
                 <HyperlinkButton.Resources>
-                    <muxc:TeachingTip x:Name="ModuleOverviewTip"
+                        <muxc:TeachingTip x:Name="ModuleOverviewTip"
                                 Target="{x:Bind ModuleOverviewLink}"
+                                PreferredPlacement="Top"
                                 Background="LightGray"
                                 Foreground="Blue"
                                 TailVisibility="Collapsed"
-                                HeroContentPlacement="Bottom"
-                               
+                                          CloseButtonContent=""
+                                          CloseButtonStyle="{StaticResource ModuleOverviewTipStyle}"
                         >
-                        <StackPanel Orientation="Horizontal"  VerticalAlignment="Top">
-                            <TextBlock x:Name="ModuleOverviewText" HorizontalAlignment="Left"  Text="Visit module overview on GitHub" TextWrapping="Wrap" VerticalAlignment="Center" />
-                            <FontIcon x:Name="ModuleOverviewTextIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xF3E2;" Margin="60,0,0,0" VerticalAlignment="Top"/>
-                        </StackPanel>
-                        <muxc:TeachingTip.HeroContent>
+                            <muxc:TeachingTip.HeroContent>
                             <Image Source="../Assets/StoreLogo.png" />
                         </muxc:TeachingTip.HeroContent>
                     </muxc:TeachingTip>
