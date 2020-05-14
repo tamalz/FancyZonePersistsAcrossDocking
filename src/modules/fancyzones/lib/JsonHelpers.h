@@ -11,7 +11,7 @@
 #include <optional>
 #include <vector>
 #include <winnt.h>
-
+#include <common\settings_objects.h>
 namespace JSONHelpers
 {
     constexpr int MAX_ZONE_COUNT = 50;
@@ -58,6 +58,19 @@ namespace JSONHelpers
 
         static json::JsonObject ToJson(const CanvasLayoutInfo& canvasInfo);
         static std::optional<CanvasLayoutInfo> FromJson(const json::JsonObject& infoJson);
+    };
+
+     struct HotKeyInfo
+    {
+        std::wstring win;
+        std::wstring ctrl;
+        std::wstring alt;
+        std::wstring shift;
+        std::wstring key;
+        int code;
+
+        static json::JsonObject ToJson(const HotKeyInfo& hotkeyInfo);
+        static HotKeyInfo FromJson(const json::JsonObject& hotkeyInfo);
     };
 
     class GridLayoutInfo
@@ -109,6 +122,7 @@ namespace JSONHelpers
         std::wstring name;
         CustomLayoutType type;
         std::variant<CanvasLayoutInfo, GridLayoutInfo> info;
+        PowerToysSettings::HotkeyObject hotkey = PowerToysSettings::HotkeyObject::from_settings(true, true, true, true, 123);
     };
 
     struct CustomZoneSetJSON

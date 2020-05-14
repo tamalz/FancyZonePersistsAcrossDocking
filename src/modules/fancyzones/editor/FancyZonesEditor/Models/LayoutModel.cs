@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using Microsoft.PowerToys.Settings.UI.Lib;
 
 namespace FancyZonesEditor.Models
 {
@@ -81,6 +82,25 @@ namespace FancyZonesEditor.Models
         }
 
         private string _name;
+
+        public HotkeySettings HotKey
+        {
+            get
+            {
+                return _hotkey;
+            }
+
+            set
+            {
+                if (_hotkey != value)
+                {
+                    _hotkey = value;
+                    FirePropertyChanged("Hotkey");
+                }
+            }
+        }
+
+        private HotkeySettings _hotkey;
 
         public LayoutType Type { get; set; }
 
@@ -163,7 +183,7 @@ namespace FancyZonesEditor.Models
             }
         }
 
-        // Loads all the custom Layouts from tmp file passed by FancuZonesLib
+        // Loads all the custom Layouts from tmp file passed by FancyZonesLib
         public static ObservableCollection<LayoutModel> LoadCustomModels()
         {
             _customModels = new ObservableCollection<LayoutModel>();

@@ -368,7 +368,6 @@ namespace FancyZonesEditor
                 UniqueKey = jsonObject.GetProperty("device-id").GetString();
                 ActiveZoneSetUUid = jsonObject.GetProperty("active-zoneset").GetProperty("uuid").GetString();
                 string layoutType = jsonObject.GetProperty("active-zoneset").GetProperty("type").GetString();
-
                 if (ActiveZoneSetUUid == "null" || layoutType == "blank")
                 {
                     // Default selection is Focus

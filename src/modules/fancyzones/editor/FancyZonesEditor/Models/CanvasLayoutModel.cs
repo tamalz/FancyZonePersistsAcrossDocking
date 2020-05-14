@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Forms;
+using MahApps.Metro.Controls;
+using Microsoft.PowerToys.Settings.UI.Lib;
+using MessageBox = System.Windows.MessageBox;
 
 namespace FancyZonesEditor.Models
 {
@@ -150,6 +154,9 @@ namespace FancyZonesEditor.Models
 
             public string Type { get; set; }
 
+            public KeyBoardKeysProperty Hotkey { get; set; }
+            //public string Hotkey { get; set; }
+
             public CanvasLayoutInfo Info { get; set; }
         }
 
@@ -181,6 +188,7 @@ namespace FancyZonesEditor.Models
                 Uuid = "{" + Guid.ToString().ToUpper() + "}",
                 Name = Name,
                 Type = "canvas",
+                Hotkey = new KeyBoardKeysProperty (new HotkeySettings() ),
                 Info = layoutInfo,
             };
 
@@ -193,6 +201,7 @@ namespace FancyZonesEditor.Models
             {
                 string jsonString = JsonSerializer.Serialize(jsonObj, options);
                 File.WriteAllText(Settings.AppliedZoneSetTmpFile, jsonString);
+                MessageBox.Show(Settings.AppliedZoneSetTmpFile);
             }
             catch (Exception ex)
             {

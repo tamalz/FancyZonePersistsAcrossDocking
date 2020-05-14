@@ -11,6 +11,8 @@
 #include <regex>
 #include <sstream>
 #include <unordered_set>
+#include <common\settings_objects.h>
+using namespace PowerToysSettings;
 
 namespace
 {
@@ -648,7 +650,7 @@ namespace JSONHelpers
     {
         std::scoped_lock lock{ dataLock };
         std::wstring jsonFilePath = GetPersistFancyZonesJSONPath();
-
+        
         if (!std::filesystem::exists(jsonFilePath))
         {
             MigrateCustomZoneSetsFromRegistry();
@@ -701,6 +703,8 @@ namespace JSONHelpers
                 CustomZoneSetData zoneSetData;
                 zoneSetData.name = std::wstring{ value };
                 zoneSetData.type = static_cast<CustomLayoutType>(data[2]);
+                HotkeyObject hk = HotkeyObject::from_settings(true, true, true, true, 123);
+                zoneSetData.hotkey = hk;
                 // int version =  data[0] * 256 + data[1]; - Not used anymore
 
                 GUID guid;
@@ -915,6 +919,31 @@ namespace JSONHelpers
         return infoJson;
     }
 
+    json::JsonObject HotKeyInfo::ToJson(const HotKeyInfo& hotkeyInfo)
+    {
+        json::JsonObject hotkeyJson{};
+        hotkeyJson.SetNamedValue(L"win", json::value(hotkeyInfo.win));
+        hotkeyJson.SetNamedValue(L"ctrl", json::value(hotkeyInfo.ctrl));
+        hotkeyJson.SetNamedValue(L"alt", json::value(hotkeyInfo.alt));
+        hotkeyJson.SetNamedValue(L"shift", json::value(hotkeyInfo.shift));
+        hotkeyJson.SetNamedValue(L"key", json::value(hotkeyInfo.key));
+        hotkeyJson.SetNamedValue(L"code", json::value(hotkeyInfo.code));
+        return hotkeyJson;
+
+    }
+
+     HotKeyInfo HotKeyInfo::FromJson(const json::JsonObject& infoJson)
+    {
+            HotKeyInfo info;
+            info.win = infoJson.GetNamedString(L"win");
+            info.ctrl = infoJson.GetNamedString(L"ctrl");
+            info.alt = infoJson.GetNamedString(L"alt");
+            info.shift = infoJson.GetNamedString(L"shift");
+            info.key = infoJson.GetNamedString(L"key");
+            info.code = static_cast<int>(infoJson.GetNamedNumber(L"code"));
+            return info;   
+    }
+
     std::optional<CanvasLayoutInfo> CanvasLayoutInfo::FromJson(const json::JsonObject& infoJson)
     {
         try
@@ -1034,6 +1063,8 @@ namespace JSONHelpers
 
         result.SetNamedValue(L"uuid", json::value(customZoneSet.uuid));
         result.SetNamedValue(L"name", json::value(customZoneSet.data.name));
+        // HotkeyObject customHotkey = json::value(customZoneSet.data.hotkey.get_json);
+        result.SetNamedValue(L"hotkey", json::value(customZoneSet.data.hotkey.get_json()));
         switch (customZoneSet.data.type)
         {
         case CustomLayoutType::Canvas: {
@@ -1070,7 +1101,10 @@ namespace JSONHelpers
             }
             
             result.data.name = customZoneSet.GetNamedString(L"name");
-
+            json::JsonObject hotkeyJson = customZoneSet.GetNamedObject(L"hotkey");
+            HotkeyObject hotkeyObject = HotkeyObject::from_json(hotkeyJson);
+            result.data.hotkey = hotkeyObject;
+            
             json::JsonObject infoJson = customZoneSet.GetNamedObject(L"info");
             std::wstring zoneSetType = std::wstring{ customZoneSet.GetNamedString(L"type") };
             if (zoneSetType.compare(L"canvas") == 0)
