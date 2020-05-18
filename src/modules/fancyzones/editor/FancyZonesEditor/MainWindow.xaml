@@ -198,7 +198,7 @@
                             <ScrollViewer.DataContext>
                                 <local:MonitorVM></local:MonitorVM>
                             </ScrollViewer.DataContext>
-                            <ItemsControl ItemsSource="{Binding Monitors}">
+                            <ItemsControl x:Name="MainWindowItemControl" ItemsSource="{Binding Monitors}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Background="LightGray" Orientation="Horizontal" ScrollViewer.HorizontalScrollBarVisibility="Visible" />
@@ -207,8 +207,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" BorderBrush="Transparent"
-                                                    Command="{Binding ItemClickCommand}"
-                                                    CommandParameter="{Binding Id}">
+                                                Command="{Binding DataContext.SelectCommand, ElementName= MainWindowItemControl}" CommandParameter="{Binding}">
                                             <Button.Content>
                                                 <Grid Height="{Binding Height}" Width="{Binding Width}" Margin="8">
                                                     <Grid.RowDefinitions>
@@ -284,7 +283,7 @@
                         <TextBlock Foreground="Gray">Show spaces around zones</TextBlock>
                         <CheckBox x:Name="spaceAroundSetting"  Style="{StaticResource settingCheckBoxText}" IsChecked="{Binding ShowSpacing}"/>
                         <TextBlock Foreground="Gray">Space around zones</TextBlock>
-                        <TextBox Margin="0" HorizontalAlignment="Left" MaxWidth="25" x:Name="paddingValue" Text="{Binding Path=Spacing,Mode=TwoWay}" Style="{StaticResource textBox}"/>
+                        <TextBox Margin="0" HorizontalAlignment="Left" Width="30" x:Name="paddingValue" Text="{Binding Path=Spacing,Mode=TwoWay}" Style="{StaticResource textBox}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,16">
                         <Button x:Name="EditTemplateButton" Padding="8" Content="Edit selected layout" Style="{StaticResource secondaryButton}" Click="EditLayout_Click"/>

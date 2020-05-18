@@ -82,7 +82,6 @@ namespace FancyZonesEditor
 
         public Settings(int monitor_shift)
         {
-            //Debugger.Launch();
             ParseCommandLineArgs(monitor_shift);
 
             // Initialize the five default layout models: Focus, Columns, Rows, Grid, and PriorityGrid
@@ -223,20 +222,20 @@ namespace FancyZonesEditor
 
         private Rect _workArea;
 
-        public static uint Monitor { get; private set; }
+        public static uint Monitor { get; set; }
 
-        public static string UniqueKey { get; private set; }
+        public string UniqueKey { get; set; }
 
-        public static string ActiveZoneSetUUid { get; private set; }
+        public static string ActiveZoneSetUUid { get; set; }
 
-        public static LayoutType ActiveZoneSetLayoutType { get; private set; }
+        public LayoutType ActiveZoneSetLayoutType { get; set; }
 
-        public static string ActiveZoneSetTmpFile
+        public string ActiveZoneSetTmpFile
         {
             get { return _activeZoneSetTmpFile; }
         }
 
-        private static string _activeZoneSetTmpFile;
+        private string _activeZoneSetTmpFile;
 
         public static string AppliedZoneSetTmpFile
         {
@@ -365,8 +364,7 @@ namespace FancyZonesEditor
         {
             try
             {
-
-                FileStream inputStream = File.Open(Settings.ActiveZoneSetTmpFile, FileMode.Open);
+                FileStream inputStream = File.Open(this.ActiveZoneSetTmpFile, FileMode.Open);
                 var jsonObject = JsonDocument.Parse(inputStream, options: default).RootElement;
 
                 UniqueKey = jsonObject.GetProperty("device-id").GetString();

@@ -1,7 +1,3 @@
-﻿// Copyright (c) Microsoft Corporation
-// The Microsoft Corporation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +8,14 @@ namespace FancyZonesEditor
 {
     public class MonitorInfo
     {
-        public MonitorInfo(int id, string name, int height, int width, string fill = "Gray")
+        public MonitorInfo(int id, string name, int height, int width, bool selected = false)
         {
             Id = id;
             Name = name;
             Height = height;
             Width = width;
-            Fill = fill;
+            Selected = selected;
+            Fill = Selected ? "DeepSkyBlue" : "Gray";
         }
 
         private int id;
@@ -59,6 +56,14 @@ namespace FancyZonesEditor
         {
             get { return fill; }
             set { fill = value; }
+        }
+
+        private bool selected;
+
+        public bool Selected
+        {
+            get { return selected; }
+            set { selected = value; }
         }
     }
 }

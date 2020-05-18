@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Windows;
+using ControlzEx.Standard;
 using FancyZonesEditor.Models;
 
 namespace FancyZonesEditor
@@ -13,12 +15,17 @@ namespace FancyZonesEditor
     /// </summary>
     public partial class App : Application
     {
-        public Settings[] ZoneSettings { get; }
+        public static Settings[] ZoneSettings { get; set; }
+
+        public static EditorOverlay Overlay { get; set; }
+
+        public static LayoutModel[] FoundModel { get; set; }
 
         public static int NumMonitors { get; private set; }
 
         public App()
         {
+            MonitorVM.CurrentMonitor = 0;
             NumMonitors = Environment.GetCommandLineArgs().Length / 6;
             ZoneSettings = new Settings[NumMonitors];
             for (int monitor_shift = 0; monitor_shift < NumMonitors; monitor_shift++)
@@ -29,44 +36,53 @@ namespace FancyZonesEditor
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
-            LayoutModel[] foundModel = new LayoutModel[NumMonitors];
+            FoundModel = new LayoutModel[NumMonitors];
 
             for (int setting = 0; setting < NumMonitors; setting++)
             {
                 foreach (LayoutModel model in ZoneSettings[setting].DefaultModels)
                 {
-                    if (model.Type == Settings.ActiveZoneSetLayoutType)
+                    if (model.Type == ZoneSettings[setting].ActiveZoneSetLayoutType)
                     {
                         // found match
-                        foundModel[setting] = model;
+                        FoundModel[setting] = model;
                         break;
                     }
                 }
 
-                if (foundModel == null)
+                if (FoundModel[setting] == null)
                 {
                     foreach (LayoutModel model in Settings.CustomModels)
                     {
                         if ("{" + model.Guid.ToString().ToUpper() + "}" == Settings.ActiveZoneSetUUid.ToUpper())
                         {
                             // found match
-                            foundModel[setting] = model;
+                            FoundModel[setting] = model;
                             break;
                         }
                     }
                 }
 
-                if (foundModel == null)
+                if (FoundModel[setting] == null)
                 {
-                    foundModel[setting] = ZoneSettings[setting].DefaultModels[0];
+                    FoundModel[setting] = ZoneSettings[setting].DefaultModels[0];
                 }
 
-                foundModel[setting].IsSelected = true;
+                FoundModel[setting].IsSelected = true;
             }
+            LoadCurrentMonitorSetup();
+        }
+        public static void LoadCurrentMonitorSetup()
+        {
+            Overlay = new EditorOverlay();
+            Overlay.Show();
+            Overlay.DataContext = FoundModel[MonitorVM.CurrentMonitor];
+        }
 
-            EditorOverlay overlay = new EditorOverlay();
-            overlay.Show();
-            overlay.DataContext = foundModel[0];
+        public static void Update()
+        {
+            Overlay.DataContext = FoundModel[MonitorVM.CurrentMonitor];
+            Overlay.MainWindow.Update();
         }
     }
 }

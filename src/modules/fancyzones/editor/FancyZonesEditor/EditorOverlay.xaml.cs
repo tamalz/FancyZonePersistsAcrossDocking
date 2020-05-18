@@ -14,14 +14,11 @@ namespace FancyZonesEditor
     /// </summary>
     public partial class EditorOverlay : Window
     {
-        public static EditorOverlay Current { get; set; }
+        public MainWindow MainWindow = new MainWindow();
 
-        private readonly Settings _settings = ((App)Application.Current).ZoneSettings[0];
+        private Settings _settings = App.ZoneSettings[MonitorVM.CurrentMonitor];
         private LayoutPreview _layoutPreview;
-
         private UserControl _editor;
-
-        private static MainWindow _mainWindow = new MainWindow();
 
         public Int32Rect[] GetZoneRects()
         {
@@ -67,7 +64,6 @@ namespace FancyZonesEditor
         public EditorOverlay()
         {
             InitializeComponent();
-            Current = this;
 
             Left = _settings.WorkArea.Left;
             Top = _settings.WorkArea.Top;
@@ -91,14 +87,14 @@ namespace FancyZonesEditor
 
             Content = _layoutPreview;
 
-            _mainWindow.Owner = this;
-            _mainWindow.ShowActivated = true;
-            _mainWindow.Topmost = true;
-            _mainWindow.Show();
+            MainWindow.Owner = this;
+            MainWindow.ShowActivated = true;
+            MainWindow.Topmost = true;
+            MainWindow.Show();
 
             // window is set to topmost to make sure it shows on top of PowerToys settings page
             // we can reset topmost flag now
-            _mainWindow.Topmost = false;
+            MainWindow.Topmost = false;
         }
 
         // These event handlers are used to track the current state of the Shift and Ctrl keys on the keyboard
