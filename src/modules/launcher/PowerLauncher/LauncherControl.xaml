@@ -263,7 +263,7 @@
             Text="&#xE721;"
             FontFamily="Segoe MDL2 Assets"
             FontSize="24" 
-            HorizontalAlignment="Center" 
+            HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Foreground="{DynamicResource TextControlPlaceholderForeground}" />
     </Grid>
