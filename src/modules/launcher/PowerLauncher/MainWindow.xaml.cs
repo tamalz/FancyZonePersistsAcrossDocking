@@ -81,25 +81,42 @@ namespace PowerLauncher
             ListBox.DataContext = _viewModel;
             ListBox.SuggestionsList.SelectionChanged += SuggestionsList_SelectionChanged;
             ListBox.SuggestionsList.PreviewMouseLeftButtonUp += SuggestionsList_PreviewMouseLeftButtonUp;
-            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
             _viewModel.ColdStartFix();
         }
 
-        private void SuggestionsList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void QueryTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            var result = ((FrameworkElement)e.OriginalSource).DataContext;
-            if (result != null)
+            if (this._isTextSetProgramatically)
             {
-                var resultVM = result as ResultViewModel;
+                var textBox = ((TextBox)sender);
+                textBox.SelectionStart = textBox.Text.Length;
 
-                //This may be null if the tapped item was one of the context buttons (run as admin etc).
-                if (resultVM != null)
-                {
-                    _viewModel.Results.SelectedItem = resultVM;
-                    _viewModel.OpenResultCommand.Execute(null);
-                }
+                this._isTextSetProgramatically = false;
             }
+            else
+            {
+                var text = ((TextBox)sender).Text;
+                if (text == string.Empty)
+                {
+                    SearchBox.AutoCompleteTextBlock.Text = String.Empty;
+                }
+
+                _viewModel.QueryText = text;
+                var latestTimeOfTyping = DateTime.Now;
+
+                Task.Run(() => DelayedCheck(latestTimeOfTyping, text));
+                s_lastTimeOfTyping = latestTimeOfTyping;
+            }
+        }
+
+        private void InitializePosition()
+        {
+            Top = WindowTop();
+            Left = WindowLeft();
+            _settings.WindowTop = Top;
+            _settings.WindowLeft = Left;
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -111,18 +128,14 @@ namespace PowerLauncher
                      _deletePressed = false;
                     _firstDeleteTimer.Start();
                     Activate();
-
                     (this.FindResource("IntroStoryboard") as Storyboard).Begin();
-
                     UpdatePosition();
-
+                    SearchBox.QueryTextBox.Focus();
                     _settings.ActivateTimes++;
                     if (!_viewModel.LastQuerySelected)
                     {
                         _viewModel.LastQuerySelected = true;
-                    }
-
-                    SearchBox.QueryTextBox.Focus();
+                    }       
 
                     // to select the text so that the user can continue to type
                     if (!string.IsNullOrEmpty(SearchBox.QueryTextBox.Text))
@@ -142,20 +155,11 @@ namespace PowerLauncher
             }
         }
 
-        private void InitializePosition()
-        {
-            Top = WindowTop();
-            Left = WindowLeft();
-            _settings.WindowTop = Top;
-            _settings.WindowLeft = Left;
-        }
-
         private void OnDeactivated(object sender, EventArgs e)
         { 
             if (_settings.HideWhenDeactivated)
             {
                 (this.FindResource("OutroStoryboard") as Storyboard).Begin();
-             //   Hide();
             }              
         }
 
@@ -200,7 +204,7 @@ namespace PowerLauncher
             var screen = Screen.FromPoint(System.Windows.Forms.Cursor.Position);
             var dip1 = WindowsInteropHelper.TransformPixelsToDIP(this, 0, screen.WorkingArea.Y);
             var dip2 = WindowsInteropHelper.TransformPixelsToDIP(this, 0, screen.WorkingArea.Height);
-            var top = (dip2.Y - SearchBox.QueryTextBox.ActualHeight) / 4 + dip1.Y;
+            var top = (dip2.Y - this.SearchBox.Height) / 4 + dip1.Y;
             return top;
         }
 
@@ -259,6 +263,22 @@ namespace PowerLauncher
             }
         }
 
+        private void SuggestionsList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var result = ((FrameworkElement)e.OriginalSource).DataContext;
+            if (result != null)
+            {
+                var resultVM = result as ResultViewModel;
+
+                //This may be null if the tapped item was one of the context buttons (run as admin etc).
+                if (resultVM != null)
+                {
+                    _viewModel.Results.SelectedItem = resultVM;
+                    _viewModel.OpenResultCommand.Execute(null);
+                }
+            }
+        }
+
         private void SuggestionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ListView listview = (ListView)sender;
@@ -272,6 +292,9 @@ namespace PowerLauncher
             // Setting it here instead of when the text is changed as there is a delay in executing the query and populating the result
             SearchBox.AutoCompleteTextBlock.Text = ListView_FirstItem(_viewModel.QueryText);
         }
+
+        private const int millisecondsToWait = 75;
+        private static DateTime s_lastTimeOfTyping;
 
         private string ListView_FirstItem(string input)
         {
@@ -291,34 +314,7 @@ namespace PowerLauncher
             return string.Empty;
         }
 
-        private const int millisecondsToWait = 75;
-        private static DateTime s_lastTimeOfTyping;
-
-        private void QueryTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            if (this._isTextSetProgramatically)
-            {
-                var textBox = ((TextBox)sender);
-                textBox.SelectionStart = textBox.Text.Length;
-
-                this._isTextSetProgramatically = false;
-            }
-            else
-            {
-                var text = ((TextBox)sender).Text;
-                if (text == string.Empty)
-                {
-                    SearchBox.AutoCompleteTextBlock.Text = String.Empty;
-                }
-
-                _viewModel.QueryText = text;
-                var latestTimeOfTyping = DateTime.Now;
-
-                Task.Run(() => DelayedCheck(latestTimeOfTyping, text));
-                s_lastTimeOfTyping = latestTimeOfTyping;
-            }
-        }
-
+       
         private async Task DelayedCheck(DateTime latestTimeOfTyping, string text)
         {
             await Task.Delay(millisecondsToWait);
@@ -337,11 +333,6 @@ namespace PowerLauncher
             {
                 e.Handled = true;
             }
-        }
-
-        private void Window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("Changed");
         }
 
         private void OutroStoryboard_Completed(object sender, EventArgs e)

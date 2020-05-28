@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:local="clr-namespace:PowerLauncher"
         mc:Ignorable="d"       
-        Title="PowerLaunch"
+        Title="PowerLauncher"
         Topmost="True"
         SizeToContent="Height"
         ResizeMode="NoResize"
@@ -82,7 +82,7 @@
             Margin="24,8,24,24" 
             BorderThickness="4"
             CornerRadius="4" 
-            Visibility="{Binding Results.Visbility}"
+            Visibility="{Binding Results.Visibility}"
             Background="{DynamicResource SystemChromeLow}"
             BorderBrush="{DynamicResource SystemChromeLow}">
             <Border.RenderTransform>
