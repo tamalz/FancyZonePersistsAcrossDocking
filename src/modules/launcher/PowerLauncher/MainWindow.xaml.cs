@@ -12,6 +12,9 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using System.Windows.Controls;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Timers;
+using Microsoft.PowerLauncher.Telemetry;
+using Microsoft.PowerToys.Telemetry;
 
 namespace PowerLauncher
 {
@@ -26,6 +29,9 @@ namespace PowerLauncher
         private bool _isTextSetProgramatically;
         const int ROW_HEIGHT = 75;
         const int MAX_LIST_HEIGHT = 300;
+        bool _deletePressed = false;
+        Timer _firstDeleteTimer = new Timer();
+
 
         #endregion
 
@@ -34,6 +40,21 @@ namespace PowerLauncher
             DataContext = mainVM;
             _viewModel = mainVM;
             _settings = settings;
+            InitializeComponent();
+
+            _firstDeleteTimer.Elapsed += CheckForFirstDelete;
+            _firstDeleteTimer.Interval = 1000;
+
+        }
+
+        private void CheckForFirstDelete(object sender, ElapsedEventArgs e)
+        {
+            _firstDeleteTimer.Stop();
+            if (_deletePressed)
+            {
+                PowerToysTelemetry.Log.WriteEvent(new LauncherFirstDeleteEvent());
+            }
+
         }
 
         public MainWindow()
@@ -87,6 +108,8 @@ namespace PowerLauncher
             {
                 if (Visibility == System.Windows.Visibility.Visible)
                 {
+                     _deletePressed = false;
+                    _firstDeleteTimer.Start();
                     Activate();
 
                     (this.FindResource("IntroStoryboard") as Storyboard).Begin();
@@ -107,6 +130,10 @@ namespace PowerLauncher
                         SearchBox.QueryTextBox.SelectAll();
                     }
                 }
+                else
+                {
+                    _firstDeleteTimer.Stop();
+                }
             }
             else if (e.PropertyName == nameof(MainViewModel.SystemQueryText))
             {
@@ -125,7 +152,7 @@ namespace PowerLauncher
 
         private void OnDeactivated(object sender, EventArgs e)
         { 
-            if (_settings.HideWhenDeactive)
+            if (_settings.HideWhenDeactivated)
             {
                 (this.FindResource("OutroStoryboard") as Storyboard).Begin();
              //   Hide();
@@ -213,6 +240,10 @@ namespace PowerLauncher
                 _viewModel.SelectPrevPageCommand.Execute(null);
                 e.Handled = true;
             }
+            else if (e.Key == Key.Back)
+            {
+                _deletePressed = true;
+            }
             else
             {
                 _viewModel.HandleContextMenu(e.Key, Keyboard.Modifiers);
@@ -263,21 +294,23 @@ namespace PowerLauncher
         private const int millisecondsToWait = 75;
         private static DateTime s_lastTimeOfTyping;
 
-        private void QueryTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void QueryTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (_isTextSetProgramatically)
+            if (this._isTextSetProgramatically)
             {
                 var textBox = ((TextBox)sender);
                 textBox.SelectionStart = textBox.Text.Length;
-                _isTextSetProgramatically = false;
+
+                this._isTextSetProgramatically = false;
             }
             else
             {
                 var text = ((TextBox)sender).Text;
                 if (text == string.Empty)
                 {
-                    SearchBox.AutoCompleteTextBlock.Text = string.Empty;
+                    SearchBox.AutoCompleteTextBlock.Text = String.Empty;
                 }
+
                 _viewModel.QueryText = text;
                 var latestTimeOfTyping = DateTime.Now;
 
