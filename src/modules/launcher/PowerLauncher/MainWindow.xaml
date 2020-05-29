@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:local="clr-namespace:PowerLauncher"
         mc:Ignorable="d"       
-        Title="PowerLauncher"
+        Title="PowerToys Run"
         Topmost="True"
         SizeToContent="Height"
         ResizeMode="NoResize"

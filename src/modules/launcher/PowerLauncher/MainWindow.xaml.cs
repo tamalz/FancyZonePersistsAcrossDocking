@@ -202,7 +202,7 @@ namespace PowerLauncher
             var screen = Screen.FromPoint(System.Windows.Forms.Cursor.Position);
             var dip1 = WindowsInteropHelper.TransformPixelsToDIP(this, 0, screen.WorkingArea.Y);
             var dip2 = WindowsInteropHelper.TransformPixelsToDIP(this, 0, screen.WorkingArea.Height);
-            var top = (dip2.Y - this.SearchBox.Height) / 4 + dip1.Y;
+            var top = (dip2.Y - this.SearchBox.ActualHeight) / 4 + dip1.Y;
             return top;
         }
 
