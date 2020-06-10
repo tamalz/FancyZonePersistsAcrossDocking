@@ -95,6 +95,16 @@ namespace FancyZonesEditor.Models
             CellChildMap = cellChildMap;
         }
 
+        public GridLayoutModel(string uuid, int hotkey_keyid, int hotkey_eventid, string name, LayoutType type, int rows, int cols, int[] rowPercents, int[] colsPercents, int[,] cellChildMap)
+            : base(uuid, hotkey_keyid, hotkey_eventid, name, type)
+        {
+            _rows = rows;
+            _cols = cols;
+            RowPercents = rowPercents;
+            ColumnPercents = colsPercents;
+            CellChildMap = cellChildMap;
+        }
+
         public void Reload(byte[] data)
         {
             // Skip version (2 bytes), id (2 bytes), and type (1 bytes)
@@ -188,12 +198,18 @@ namespace FancyZonesEditor.Models
         {
             public string Uuid { get; set; }
 
+            public int Eventid { get; set; }
+
+            public int Keyid { get; set; }
+
             public string Name { get; set; }
 
             public string Type { get; set; }
 
             public GridLayoutInfo Info { get; set; }
         }
+
+        private readonly Random rnd = new Random();
 
         // PersistData
         // Implements the LayoutModel.PersistData abstract method
@@ -219,6 +235,8 @@ namespace FancyZonesEditor.Models
             GridLayoutJson jsonObj = new GridLayoutJson
             {
                 Uuid = "{" + Guid.ToString().ToUpper() + "}",
+                Eventid = rnd.Next(), // TODO: Give Eventid a unique int
+                Keyid = Keyid,
                 Name = Name,
                 Type = "grid",
                 Info = layoutInfo,

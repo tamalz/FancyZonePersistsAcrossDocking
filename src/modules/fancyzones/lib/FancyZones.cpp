@@ -4,6 +4,10 @@
 #include <common/on_thread_executor.h>
 #include <common/window_helpers.h>
 
+#include <common/notifications.h>
+#include <common/notifications/fancyzones_notifications.h>
+#include <common/window_helpers.h>
+
 #include "FancyZones.h"
 #include "lib/Settings.h"
 #include "lib/ZoneWindow.h"
@@ -16,6 +20,9 @@
 #include "VirtualDesktopUtils.h"
 
 #include <interface/win_hook_event_data.h>
+#include <common\notifications.h>
+
+extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 enum class DisplayChangeType
 {
@@ -68,13 +75,13 @@ public:
         std::unique_lock writeLock(m_lock);
         m_windowMoveHandler.MoveSizeStart(window, monitor, ptScreen, m_zoneWindowMap);
     }
-    
+
     void MoveSizeUpdate(HMONITOR monitor, POINT const& ptScreen) noexcept
     {
         std::unique_lock writeLock(m_lock);
         m_windowMoveHandler.MoveSizeUpdate(monitor, ptScreen, m_zoneWindowMap);
     }
-    
+
     void MoveSizeEnd(HWND window, POINT const& ptScreen) noexcept
     {
         std::unique_lock writeLock(m_lock);
@@ -122,7 +129,9 @@ public:
     ToggleEditor() noexcept;
     IFACEMETHODIMP_(void)
     SettingsChanged() noexcept;
-    
+    IFACEMETHODIMP_(void)
+    UpdateHotKeys() noexcept;
+
     void WindowCreated(HWND window) noexcept;
 
     // IZoneWindowHost
@@ -423,6 +432,24 @@ FancyZones::OnKeyDown(PKBDLLHOOKSTRUCT info) noexcept
     return false;
 }
 
+void FancyZones::UpdateHotKeys() noexcept
+{
+    auto& fancyZonesData = JSONHelpers::FancyZonesDataInstance();
+    auto fancyZoneDataJson = fancyZonesData.GetPersistFancyZonesJSON();
+    json::JsonArray customZonesJson = fancyZoneDataJson.GetNamedArray(L"custom-zone-sets");
+
+    uint32_t size = customZonesJson.Size();
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        json::JsonObject customZoneJson = customZonesJson.GetObjectAt(i);
+        const int eventid = static_cast<int>(customZoneJson.GetNamedNumber(L"eventid"));
+        const int keyid = static_cast<int>(customZoneJson.GetNamedNumber(L"keyid"));
+        UnregisterHotKey(m_window, eventid);
+        // TODO: allow the user to set their own hotkeys and not hardcode it to alt + letter/number
+        RegisterHotKey(m_window, eventid, MOD_ALT | MOD_NOREPEAT, keyid + 48);
+    }
+}
+
 // IFancyZonesCallback
 void FancyZones::ToggleEditor() noexcept
 {
@@ -440,6 +467,7 @@ void FancyZones::ToggleEditor() noexcept
         m_terminateEditorEvent.reset(CreateEvent(nullptr, true, false, nullptr));
     }
 
+    UpdateHotKeys(); // TODO: call the update hotkey function on zone-settings.json change event
     HMONITOR monitor{};
     HWND foregroundWindow{};
 
@@ -572,6 +600,66 @@ LRESULT FancyZones::WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
         {
             ToggleEditor();
         }
+
+        // Check for custom zone hotkeys
+        auto& fancyZonesData = JSONHelpers::FancyZonesDataInstance();
+        auto fancyZoneDataJson = fancyZonesData.GetPersistFancyZonesJSON();
+        json::JsonArray customZonesJson = fancyZoneDataJson.GetNamedArray(L"custom-zone-sets");
+        uint32_t size = customZonesJson.Size();
+
+        for (int i = 0; i < size; i++)
+        {
+            json::JsonObject customZoneJson = customZonesJson.GetObjectAt(i);
+            const std::wstring newLayout = static_cast<std::wstring>(customZoneJson.GetNamedString(L"uuid"));
+            const int refWidth = static_cast<int>(customZoneJson.GetNamedObject(L"info").GetNamedNumber(L"ref-width"));
+            const int refHeight = static_cast<int>(customZoneJson.GetNamedObject(L"info").GetNamedNumber(L"ref-height"));
+            const int eventID = static_cast<int>(customZoneJson.GetNamedNumber(L"eventid"));
+
+            if (wparam == eventID)
+            {
+                // Grab the monitor
+                POINT currentCursorPos{};
+                HMONITOR monitor{};
+                GetCursorPos(&currentCursorPos);
+                monitor = MonitorFromPoint(currentCursorPos, MONITOR_DEFAULTTOPRIMARY);
+
+                // Grab actual monitor height/width
+                MONITORINFOEX mi;
+                mi.cbSize = sizeof(mi);
+
+                m_dpiUnawareThread.submit(OnThreadExecutor::task_t{ [&] {
+                                      GetMonitorInfo(monitor, &mi);
+                                  } })
+                    .wait();
+
+                const auto actualWidth = mi.rcWork.right - mi.rcWork.left;
+                const auto actualHeight = mi.rcWork.bottom - mi.rcWork.top;
+
+                // Send notification if monitor is diffrent
+                if (actualHeight != refHeight || actualWidth != refWidth)
+                {
+                    // TODO: update resource strings to show respective messages
+                    std::vector<notifications::action_t> actions = {
+                        notifications::link_button{ GET_RESOURCE_STRING(IDS_CANT_DRAG_ELEVATED_LEARN_MORE), L"TODO" },
+                        notifications::link_button{ GET_RESOURCE_STRING(IDS_CANT_DRAG_ELEVATED_DIALOG_DONT_SHOW_AGAIN), L"TODO" }
+                    };
+                    notifications::show_toast_with_activations(L"WARNING: the fancy zone you have chosen may not be applied as you intended. Resolutions do not match!", {}, std::move(actions));
+                }
+
+                // Apply the desired layout
+                auto iter = m_zoneWindowMap.find(monitor);
+                auto zoneWindow = iter->second;
+                auto deviceInfo = fancyZonesData.FindDeviceInfo(zoneWindow->UniqueId());
+                JSONHelpers::ZoneSetData newZoneData{ newLayout, JSONHelpers::ZoneSetLayoutType::Custom };
+                deviceInfo->activeZoneSet = newZoneData;
+                JSONHelpers::DeviceInfoJSON deviceInfoJson{ zoneWindow->UniqueId(), *deviceInfo };
+
+                fancyZonesData.SerializeDeviceInfoToTmpFile(deviceInfoJson, ZoneWindowUtils::GetActiveZoneSetTmpPath());
+                fancyZonesData.SetActiveZoneSet(zoneWindow->UniqueId(), newZoneData);
+                fancyZonesData.SaveFancyZonesData();
+                OnEditorExitEvent();
+            }
+        }
     }
     break;
 
@@ -662,7 +750,6 @@ LRESULT FancyZones::WndProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
     }
     return 0;
 }
-
 
 void FancyZones::OnDisplayChange(DisplayChangeType changeType) noexcept
 {

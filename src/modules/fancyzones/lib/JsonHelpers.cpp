@@ -1034,6 +1034,8 @@ namespace JSONHelpers
 
         result.SetNamedValue(L"uuid", json::value(customZoneSet.uuid));
         result.SetNamedValue(L"name", json::value(customZoneSet.data.name));
+        result.SetNamedValue(L"eventid", json::value(customZoneSet.data.eventid));
+        result.SetNamedValue(L"keyid", json::value(customZoneSet.data.keyid));
         switch (customZoneSet.data.type)
         {
         case CustomLayoutType::Canvas: {
@@ -1070,6 +1072,8 @@ namespace JSONHelpers
             }
             
             result.data.name = customZoneSet.GetNamedString(L"name");
+            result.data.eventid = customZoneSet.GetNamedNumber(L"eventid");
+            result.data.keyid = customZoneSet.GetNamedNumber(L"keyid");
 
             json::JsonObject infoJson = customZoneSet.GetNamedObject(L"info");
             std::wstring zoneSetType = std::wstring{ customZoneSet.GetNamedString(L"type") };
